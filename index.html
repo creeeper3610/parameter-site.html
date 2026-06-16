@@ -2,52 +2,34 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>コード共有レンダラー</title>
-    <style>
-        /* 画面全体にコード実行結果（iframe）を表示するスタイル */
-        html, body, iframe {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-            overflow: hidden;
-        }
-    </style>
+    <title>パラメータ反映サイト</title>
+    <!-- パラメータのCSSを流し込むための空のスタイルタグ -->
+    <style id="custom-css"></style>
 </head>
 <body>
-
-    <!-- パラメータのコードを展開して実行するための安全な隔離部屋（iframe） -->
-    <iframe id="output"></iframe>
+    <!-- パラメータのHTMLを流し込むための空のエリア -->
+    <div id="custom-html"></div>
 
     <script>
-        // 1. URLからパラメータ（?html=... など）を取得
+        // 1. URLからパラメータを取得
         const params = new URLSearchParams(window.location.search);
 
-        // 2. 各パラメータの値（コード文字列）を取り出す（空ならデフォルト値）
-        const htmlCode = params.get('html') || '<h1>コードが指定されていません</h1><p>?html=... をURLに付けてください</p>';
-        const cssCode  = params.get('css')  || 'body { font-family: sans-serif; text-align: center; margin-top: 50px; }';
-        const jsCode   = params.get('js')   || 'console.log("No JS loaded");';
+        // 2. パラメータから各コードを抽出（値がなければデフォルトの文字）
+        const htmlCode = params.get('html') || '<h1>サイトの初期状態</h1><p>URLにパラメータを付与してください。</p>';
+        const cssCode  = params.get('css')  || 'body { font-family: sans-serif; padding: 20px; background: #fafafa; }';
+        const jsCode   = params.get('js')   || 'console.log("初期JS実行中");';
 
-        // 3. 取得したコードを1つのHTMLドキュメントとして組み立てる
-        const completeSource = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <style>${cssCode}<\/style>
-            </head>
-            <body>
-                ${htmlCode}
-                <script>${jsCode}<\/script>
-            </body>
-            </html>
-        `;
+        // 3. このサイト自身のHTMLとCSSを上書きする
+        document.getElementById('custom-html').innerHTML = htmlCode;
+        document.getElementById('custom-css').textContent = cssCode;
 
-        // 4. iframeの中に組み立てたHTMLを流し込んで実行する
-        const iframe = document.getElementById('output');
-        iframe.srcdoc = completeSource;
+        // 4. このサイト自身のスクリプトとしてJSを実行する
+        // (scriptタグのinnerHTMLに後から文字列を入れても実行されないため、要素を作って挿入します)
+        if (params.get('js')) {
+            const scriptTag = document.createElement('script');
+            scriptTag.textContent = jsCode;
+            document.body.appendChild(scriptTag);
+        }
     </script>
 </body>
 </html>
